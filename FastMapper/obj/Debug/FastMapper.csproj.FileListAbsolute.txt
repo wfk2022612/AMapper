@@ -1,0 +1,4 @@
+D:\GitSource\FastMapper\FastMapper\FastMapper\bin\Debug\FastMapper.dll
+D:\GitSource\FastMapper\FastMapper\FastMapper\bin\Debug\FastMapper.pdb
+D:\GitSource\FastMapper\FastMapper\FastMapper\obj\Debug\FastMapper.dll
+D:\GitSource\FastMapper\FastMapper\FastMapper\obj\Debug\FastMapper.pdb
