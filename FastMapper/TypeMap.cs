@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace FastMapper
@@ -70,8 +71,8 @@ namespace FastMapper
 
         public Func<TS, TD> Compile()
         {
-            var tsProps = typeof(TS).GetProperties().ToList();
-            var tdProps = typeof(TD).GetProperties().ToList();
+            var tsProps = typeof(TS).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic).ToList();
+            var tdProps = typeof(TD).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic).ToList();
             //var toString = typeof(object).GetMethod("ToString");
             var dm = new DynamicMethod("translate" + typeof(TD).Name + "To" + typeof(TS).Name, typeof(TD),
                 new[] { typeof(TS) }, typeof(TD).Module);
@@ -95,18 +96,21 @@ namespace FastMapper
                     {
                         var tsGet = tsProp.GetGetMethod();
                         var tdSet = tdProp.GetSetMethod();
-
-                        if (tsGet.IsStatic)
+                        if (tsGet != null && tdSet != null)
                         {
-                            il.Emit(OpCodes.Call, tsGet);
-                        }
-                        else
-                        {
+                            if (tsGet.IsStatic)
+                            {
+                                il.Emit(OpCodes.Call, tsGet);
+                            }
+                            else
+                            {
                                 il.Emit(OpCodes.Ldloc_0);
                                 il.Emit(OpCodes.Ldarg_0);
                                 il.Emit(OpCodes.Callvirt, tsGet);
+                            }
+                            il.Emit(tdSet.IsStatic ? OpCodes.Call : OpCodes.Callvirt, tdSet);
                         }
-                        il.Emit(tdSet.IsStatic ? OpCodes.Call : OpCodes.Callvirt, tdSet);
+
                     }
                 }
             }

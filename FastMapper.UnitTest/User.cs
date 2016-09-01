@@ -9,5 +9,6 @@ namespace FastMapper.UnitTest
     {
         public string Name { get; set; }
         public int Age { get; set; }
+        public int Gender { get; private set; }
     }
 }
