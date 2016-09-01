@@ -8,8 +8,8 @@ using System.Reflection.Emit;
 namespace FastMapper
 {
     public class TypeMap<TS, TD>
-        where TS : new()
-        where TD : new()
+        where TS : class ,new()
+        where TD : class ,new()
     {
         readonly Dictionary<string, PropMap> _propMaps = new Dictionary<string, PropMap>();
         public TypeMap()

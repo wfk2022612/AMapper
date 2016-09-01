@@ -17,7 +17,7 @@ namespace FastMapper.UnitTest
         [TestCategory("单个实例转换")]
         public void TestMethod1()
         {
-            User user = new User();
+            var user = new User();
             user.Name = "jack";
             user.Age = 13;
 
@@ -27,7 +27,7 @@ namespace FastMapper.UnitTest
         }
 
         [TestMethod]
-        [TestCategory("多个实例转换")]
+        [TestCategory("1千万个实例转换")]
         public void TestMethod2()
         {
             var user = new User();
