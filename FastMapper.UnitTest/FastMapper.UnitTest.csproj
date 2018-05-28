@@ -53,10 +53,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="People.cs" />
+    <Compile Include="HobbyEntity.cs" />
+    <Compile Include="HobbyPoco.cs" />
+    <Compile Include="UserEntity.cs" />
     <Compile Include="UnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="User.cs" />
+    <Compile Include="UserPoco.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FastMapper\FastMapper.csproj">

@@ -3,3 +3,6 @@
 ################################################################################
 
 /.vs/FastMapper/v14
+/FastMapper.UnitTest/bin/Debug
+/FastMapper.UnitTest/obj/Debug
+/FastMapper/obj/Debug

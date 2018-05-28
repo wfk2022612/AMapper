@@ -5,10 +5,8 @@ using System.Text;
 
 namespace FastMapper.UnitTest
 {
-    class People
+    class HobbyEntity
     {
         public string Name { get; set; }
-        public int Age { get; set; }
-        public int Gender { get; private set; }
     }
 }

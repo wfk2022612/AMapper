@@ -5,10 +5,13 @@ using System.Text;
 
 namespace FastMapper.UnitTest
 {
-    class User
+    class UserPoco
     {
         public string Name { get; set; }
         public int Age { get; set; }
         public int Gender { get; private set; }
+
+        public IEnumerable<HobbyPoco> Hobbies { get; set; }
     }
+
 }

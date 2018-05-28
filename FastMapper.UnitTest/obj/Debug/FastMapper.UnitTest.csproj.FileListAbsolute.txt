@@ -1,7 +1,0 @@
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\bin\Debug\FastMapper.UnitTest.dll
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\bin\Debug\FastMapper.UnitTest.pdb
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\bin\Debug\FastMapper.dll
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\bin\Debug\FastMapper.pdb
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\obj\Debug\FastMapper.UnitTest.csprojResolveAssemblyReference.cache
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\obj\Debug\FastMapper.UnitTest.dll
-D:\GitSource\FastMapper\FastMapper\FastMapper.UnitTest\obj\Debug\FastMapper.UnitTest.pdb
