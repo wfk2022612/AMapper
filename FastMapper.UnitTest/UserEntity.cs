@@ -11,6 +11,6 @@ namespace FastMapper.UnitTest
         public int Age { get; set; }
         public int Gender { get; private set; }
 
-        public HobbyEntity[] Hobbies { get; set; }
+        public string[] Hobbies { get; set; }
     }
 }

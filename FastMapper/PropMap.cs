@@ -1,3 +1,7 @@
+using System;
+using System.Linq.Expressions;
+using System.Reflection;
+
 namespace FastMapper
 {
     public class PropMap
@@ -10,6 +14,8 @@ namespace FastMapper
         }
 
         public string MapProp { get; set; }
-
+        public MethodInfo MethodInfo { get; internal set; }
+        public object Target { get; internal set; }
+        public Expression ValueExpression { get; internal set; }
     }
 }
