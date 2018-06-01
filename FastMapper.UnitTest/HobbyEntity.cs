@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FastMapper.UnitTest
 {
-    class HobbyEntity
+    public class HobbyEntity
     {
         public string Name { get; set; }
     }
