@@ -17,7 +17,7 @@ namespace FastMapper.UnitTest
             _hobbyMapFunc = FastMap.CreateMap<HobbyPoco, HobbyEntity>()
                 .Compile();
             _userMapFunc = FastMap.CreateMap<UserPoco, UserEntity>()
-                .ForMember(user => user.Hobbies, data =>data.Hobbies.Select(x=>x.Name).ToArray())
+                .ForMember(user => user.Hobbies, data =>(data.Hobbies??new HobbyPoco[0]).Select(x=>x.Name).ToArray())
                 .Compile();
         }
         [TestMethod]
@@ -38,7 +38,7 @@ namespace FastMapper.UnitTest
             var people = _userMapFunc(user);
             Assert.IsTrue(people.Name == user.Name, "姓名不一致");
             Assert.IsTrue(people.Age == user.Age, "年龄不一致");
-            //Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
+            Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace FastMapper.UnitTest
             Assert.IsNotNull(people, "转换失败");
             Assert.IsTrue(people.Name == user.Name, "姓名不一致");
             Assert.IsTrue(people.Age == count, "年龄不一致");
-            //Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
+            Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
         }
     }
 }
