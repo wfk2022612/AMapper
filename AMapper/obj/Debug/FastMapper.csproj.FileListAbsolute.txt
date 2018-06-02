@@ -1,0 +1,7 @@
+D:\gitproject\FastMapper\FastMapper\obj\Debug\FastMapper.csprojResolveAssemblyReference.cache
+D:\gitproject\FastMapper\FastMapper\bin\Debug\AMapper.dll.config
+D:\gitproject\FastMapper\FastMapper\bin\Debug\AMapper.xml
+D:\gitproject\FastMapper\FastMapper\bin\Debug\AMapper.dll
+D:\gitproject\FastMapper\FastMapper\bin\Debug\AMapper.pdb
+D:\gitproject\FastMapper\FastMapper\obj\Debug\AMapper.dll
+D:\gitproject\FastMapper\FastMapper\obj\Debug\AMapper.pdb

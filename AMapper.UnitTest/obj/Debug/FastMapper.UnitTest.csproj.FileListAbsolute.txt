@@ -1,0 +1,10 @@
+D:\gitproject\FastMapper\FastMapper.UnitTest\obj\Debug\FastMapper.UnitTest.csprojResolveAssemblyReference.cache
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\zh-Hans\Microsoft.VisualStudio.QualityTools.UnitTestFramework.resources.dll
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\AMapper.UnitTest.dll
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\AMapper.UnitTest.pdb
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\AMapper.dll
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\AMapper.pdb
+D:\gitproject\FastMapper\FastMapper.UnitTest\bin\Debug\AMapper.xml
+D:\gitproject\FastMapper\FastMapper.UnitTest\obj\Debug\AMapper.UnitTest.dll
+D:\gitproject\FastMapper\FastMapper.UnitTest\obj\Debug\AMapper.UnitTest.pdb
