@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("AMapper")]
-[assembly: AssemblyDescription("AMapper是一个通过表达式树和MSIL实现的可配置的实体转换器。")]
+[assembly: AssemblyDescription("AMapper是一个高性能实体转换组件，默认采用忽略大小写的属性名作为映射条件，支持基本类型间的自动转换。对于复杂的集合属性也能很好的支持。在千万级转换测试中，其效率已超过绝大多数Mapper组件。")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("wang fengkun")]
 [assembly: AssemblyProduct("AMapper")]

@@ -2,8 +2,8 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/.vs/FastMapper/v14
-/FastMapper.UnitTest/bin/
-/FastMapper.UnitTest/obj/
-/FastMapper/obj/
-/FastMapper/bin/
+/.vs/AMapper/v14
+/AMapper.UnitTest/bin/
+/AMapper.UnitTest/obj/
+/AMapper/obj/
+/AMapper/bin/
