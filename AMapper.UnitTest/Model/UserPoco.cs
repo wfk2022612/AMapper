@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AMapper.UnitTest
+namespace AMapper.UnitTest.Model
 {
- public   class UserEntity
+  public  class UserPoco
     {
         public string Name { get; set; }
         public int Age { get; set; }
-        public int Gender { get;  set; }
+        public int Gender { get; set; }
 
-        public string[] Hobbies { get; set; }
+        public IEnumerable<HobbyPoco> Hobbies { get; set; }
     }
+
 }

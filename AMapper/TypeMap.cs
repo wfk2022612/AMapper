@@ -5,6 +5,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security;
+using System.Security.Permissions;
+using System.Security.Policy;
 
 namespace AMapper
 {
@@ -38,11 +41,10 @@ namespace AMapper
                 {
                     // 生成属性表达式
                     ParameterExpression param = Expression.Parameter(typeof(TS), "ts");
-
                     Expression propExp = Expression.Property(param, tsProp);
 
-                    var systemConvert = typeof(Convert).GetMethod("To" + prop.PropertyType.Name,
-                        new Type[] { propExp.Type });
+
+                    var systemConvert = typeof(Convert).GetMethod("To" + prop.PropertyType.Name, new Type[] { propExp.Type });
                     if (systemConvert != null)
                     {
                         propExp = Expression.Call(null, systemConvert, propExp); // 使用系统方法转换
@@ -87,7 +89,10 @@ namespace AMapper
         /// </summary>
         private void CreateMapType()
         {
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("FastMapAsm"+DateTime.Now.Ticks), AssemblyBuilderAccess.Run);
+
+            AssemblyBuilder assemblyBuilder =
+                AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("FastMapAsm" + DateTime.Now.Ticks),
+                    AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule("FastMapAsmModule");
             var typeBuilder = moduleBuilder.DefineType("FastPropMap" + typeof(TS).Name + "_" + typeof(TD).Name, TypeAttributes.Class | TypeAttributes.Public);
             var bprops = typeof(TD).GetProperties();
@@ -109,7 +114,7 @@ namespace AMapper
                 if (propertyInfo.PropertyType.GetInterface(typeof(IEnumerable).Name) != null && propertyInfo.PropertyType != typeof(string))
                 {
                     // 处理集合属性
-                    convertType = GetTypeConvert(GetElementType(val.Type), GetElementType(propertyInfo.PropertyType), true);
+                    convertType = GetTypeMap(GetElementType(val.Type), GetElementType(propertyInfo.PropertyType), true);
                     if (propertyInfo.PropertyType.Name != typeof(IEnumerable).Name && propertyInfo.PropertyType.Name != typeof(IEnumerable<>).Name)
                     {
                         toArrayOrList = typeof(Enumerable).GetMethod(propertyInfo.PropertyType.IsArray ? "ToArray" : "ToList");
@@ -120,7 +125,7 @@ namespace AMapper
                 else
                 {
                     // 获取已创建的映射转换类
-                    convertType = GetTypeConvert(val.Type, propertyInfo.PropertyType);
+                    convertType = GetTypeMap(val.Type, propertyInfo.PropertyType);
                 }
 
                 if (convertType != null)
@@ -228,19 +233,19 @@ namespace AMapper
         /// <returns>集合元素类型</returns>
         private Type GetElementType(Type type)
         {
-            if (type == typeof(string))
-            {
-                return type;
-            }
-            if (type.IsArray)
-            {
-                return type.GetElementType();
-            }
-            else if (type.GenericTypeArguments.Any())
-            {
-                return type.GenericTypeArguments[0];
-            }
-            return type;
+            //if (type == typeof(string))
+            //{
+            //    return type;
+            //}
+            //if (type.IsArray)
+            //{
+            //    return type.GetElementType();
+            //}
+            //else if (type.GetGenericArguments().Any())
+            //{
+            //    return type.GetGenericArguments()[0];
+            //}
+            return type.GetGenericCollectType();
         }
         /// <summary>
         /// 创建集合转换类
@@ -326,18 +331,21 @@ namespace AMapper
         /// <param name="tdType">新类型</param>
         /// <param name="collectType">是否是多实体转换</param>
         /// <returns>包含转换方法的类型</returns>
-        private Type GetTypeConvert(Type tsType, Type tdType, bool collectType = false)
+        private Type GetTypeMap(Type tsType, Type tdType, bool collectType = false)
         {
-            var mapKey = string.Format("{0},{1}", tsType.FullName, tdType.FullName);
-            if (Map.TypeMaps.ContainsKey(mapKey))
+            if (tsType != typeof(object) && tdType != typeof(object))
             {
-                var obj = Map.TypeMaps[mapKey];
-                if (obj != null)
+                var mapKey = string.Format("{0},{1}", tsType.FullName, tdType.FullName);
+                if (Map.TypeMaps.ContainsKey(mapKey))
                 {
-                    var convertType = collectType ? obj.CollectConvertType : obj.ConvertType;
-                    return convertType;
-                }
+                    var obj = Map.TypeMaps[mapKey];
+                    if (obj != null)
+                    {
+                        var convertType = collectType ? obj.CollectConvertType : obj.ConvertType;
+                        return convertType;
+                    }
 
+                }
             }
             return null;
         }
