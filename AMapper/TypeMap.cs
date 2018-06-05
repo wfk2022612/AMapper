@@ -228,17 +228,20 @@ namespace AMapper
         /// <returns>集合元素类型</returns>
         private Type GetElementType(Type type)
         {
-            if (type == typeof(string))
+            // 排除字符串
+            if(type==typeof(string))
             {
                 return type;
             }
-            if (type.IsArray)
+            // 可枚举类型
+            if (type.Name == typeof(IEnumerable<>).Name)
             {
-                return type.GetElementType();
+                return type.GetGenericArguments()[0];
             }
-            else if (type.GenericTypeArguments.Any())
+            // 实现了可枚举接口
+            if (type.GetInterface(typeof(IEnumerable<>).Name) != null)
             {
-                return type.GenericTypeArguments[0];
+                return type.GetInterface(typeof(IEnumerable<>).Name).GetGenericArguments()[0];
             }
             return type;
         }
