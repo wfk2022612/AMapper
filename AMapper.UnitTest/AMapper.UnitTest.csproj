@@ -51,17 +51,19 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
+          <Private>False</Private>
+        </Reference>
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="HobbyEntity.cs" />
-    <Compile Include="HobbyPoco.cs" />
-    <Compile Include="UserEntity.cs" />
-    <Compile Include="UnitTest.cs" />
+    <Compile Include="Model\HobbyEntity.cs" />
+    <Compile Include="Model\HobbyPoco.cs" />
+    <Compile Include="Model\UserEntity.cs" />
+    <Compile Include="AMapperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UserPoco.cs" />
+    <Compile Include="Model\UserPoco.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AMapper\AMapper.csproj">
