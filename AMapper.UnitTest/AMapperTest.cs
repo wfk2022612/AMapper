@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AMapper.UnitTest.Model;
@@ -30,6 +31,8 @@ namespace AMapper.UnitTest
             var user = new UserPoco();
             user.Name = "jack";
             user.Age = 13;
+            user.EmptyList=new List<string>() ;
+            user.NullSet = null;
             user.Hobbies = new HobbyPoco[]
             {
                 new HobbyPoco() {Name = "游泳",Chars = new [] {'Y','Y'}},
@@ -42,8 +45,10 @@ namespace AMapper.UnitTest
             Assert.IsTrue(people.Name == user.Name, "姓名不一致");
             Assert.IsTrue(people.Age == user.Age, "年龄不一致");
             Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
-            Assert.IsTrue(people.HobbieEntities[0].Name == "游泳", "爱好不一致");
-            Assert.IsTrue(people.HobbieEntities[0].CharString == "YY", "爱好首字母不一致");
+            Assert.IsTrue(people.HobbieEntities.First().Name == "游泳", "爱好不一致");
+            Assert.IsTrue(people.HobbieEntities.First().CharString == "YY", "爱好首字母不一致");
+            Assert.IsTrue(!people.EmptyList.Any(),"空列表不为空");
+            Assert.IsTrue(people.NullSet==null, "NullSet不为NULL");
         }
 
     }

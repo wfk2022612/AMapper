@@ -13,6 +13,10 @@ namespace AMapper.UnitTest.Model
 
         public string[] Hobbies { get; set; }
 
-        public HobbyEntity[] HobbieEntities { get; set; }
+        public ISet<HobbyEntity> HobbieEntities { get; set; }
+
+        public IList<string> EmptyList { get; set; }
+
+        public HashSet<string> NullSet { get; set; }
     }
 }

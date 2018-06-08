@@ -12,6 +12,10 @@ namespace AMapper.UnitTest.Model
         public int Gender { get; set; }
 
         public IEnumerable<HobbyPoco> Hobbies { get; set; }
+
+        public List<string> EmptyList { get; set; }
+
+        public ISet<string> NullSet { get; set; }
     }
 
 }

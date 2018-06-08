@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumerableEx.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="ITypeMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

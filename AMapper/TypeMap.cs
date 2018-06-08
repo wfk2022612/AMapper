@@ -110,16 +110,23 @@ namespace AMapper
                 var valExp = (LambdaExpression)propMap;
                 val = valExp.Body;
                 Type convertType = null;// CreateMapType生成的转换类
-                MethodInfo toArrayOrList = null;
+                MethodInfo toCollectionMethod = null;
                 if (propertyInfo.PropertyType.GetInterface(typeof(IEnumerable).Name) != null && propertyInfo.PropertyType != typeof(string))
                 {
                     // 处理集合属性
                     convertType = GetTypeMap(GetElementType(val.Type), GetElementType(propertyInfo.PropertyType), true);
+
                     if (propertyInfo.PropertyType.Name != typeof(IEnumerable).Name && propertyInfo.PropertyType.Name != typeof(IEnumerable<>).Name)
                     {
-                        toArrayOrList = typeof(Enumerable).GetMethod(propertyInfo.PropertyType.IsArray ? "ToArray" : "ToList");
-                        if (toArrayOrList != null)
-                            toArrayOrList = toArrayOrList.MakeGenericMethod(GetElementType(propertyInfo.PropertyType));
+                        // 只对非IEnumerable类型做处理
+
+                        toCollectionMethod =
+                            typeof(EnumerableEx).GetMethods()
+                                .FirstOrDefault(m => m.ReturnType.Name == propertyInfo.PropertyType.Name);
+
+
+                        if (toCollectionMethod != null)
+                            toCollectionMethod = toCollectionMethod.MakeGenericMethod(GetElementType(propertyInfo.PropertyType));
                     }
                 }
                 else
@@ -134,13 +141,16 @@ namespace AMapper
 
                     val = Expression.Call(null, convertMethod, val);
 
-                    // 将IEnumerable 转为目标类型
-                    if (toArrayOrList != null)
+                    // 将IEnumerable 转为目标集合类型
+                    if (toCollectionMethod != null)
                     {
-                        val = Expression.Call(null, toArrayOrList, val);
+                        // val= val!=default(T)?ToList(val):default(T)
+                        val = Expression.Condition(Expression.ReferenceNotEqual(val, Expression.Default(propertyInfo.PropertyType)), Expression.Call(null, toCollectionMethod, val), Expression.Default(propertyInfo.PropertyType));
                     }
                 }
-                else if (val.Type != propertyInfo.PropertyType)
+
+
+                if (val.Type != propertyInfo.PropertyType)
                 {
                     var systemConvert = typeof(Convert).GetMethod("To" + propertyInfo.PropertyType.Name,
                        new Type[] { val.Type });
@@ -234,7 +244,7 @@ namespace AMapper
         private Type GetElementType(Type type)
         {
             // 排除字符串
-            if(type==typeof(string))
+            if (type == typeof(string))
             {
                 return type;
             }
@@ -250,6 +260,12 @@ namespace AMapper
             }
             return type;
         }
+
+        private Type MakeIEnumerable(Type type)
+        {
+            return typeof(IEnumerable<>).MakeGenericType(type);
+        }
+
         /// <summary>
         /// 创建集合转换类
         /// </summary>
