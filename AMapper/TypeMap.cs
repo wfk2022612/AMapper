@@ -124,7 +124,6 @@ namespace AMapper
                             typeof(EnumerableEx).GetMethods()
                                 .FirstOrDefault(m => m.ReturnType.Name == propertyInfo.PropertyType.Name);
 
-
                         if (toCollectionMethod != null)
                             toCollectionMethod = toCollectionMethod.MakeGenericMethod(GetElementType(propertyInfo.PropertyType));
                     }
@@ -140,15 +139,14 @@ namespace AMapper
                     var convertMethod = convertType.GetMethod("Convert");
 
                     val = Expression.Call(null, convertMethod, val);
-
-                    // 将IEnumerable 转为目标集合类型
-                    if (toCollectionMethod != null)
-                    {
-                        // val= val!=default(T)?ToList(val):default(T)
-                        val = Expression.Condition(Expression.ReferenceNotEqual(val, Expression.Default(propertyInfo.PropertyType)), Expression.Call(null, toCollectionMethod, val), Expression.Default(propertyInfo.PropertyType));
-                    }
                 }
 
+                // 将IEnumerable 转为目标集合类型
+                if (toCollectionMethod != null)
+                {
+                    // val= val!=default(T)?ToList(val):default(T)
+                    val = Expression.Condition(Expression.ReferenceNotEqual(val, Expression.Default(propertyInfo.PropertyType)), Expression.Call(null, toCollectionMethod, val), Expression.Default(propertyInfo.PropertyType));
+                }
 
                 if (val.Type != propertyInfo.PropertyType)
                 {

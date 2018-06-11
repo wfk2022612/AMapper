@@ -5,9 +5,9 @@ AMapper是一个高性能实体转换组件，默认采用忽略大小写的属�
 使用方法
 -----------
 1. 引用`AMapper.dll`或者使用`nuget`安装
-    ```
-    Install-Package AMapper
-    ```
+```
+Install-Package AMapper
+```
 2. 创建类映射关系
 ```csharp
 var _mapFunc = Map.Create<AClass, BClass>().Compile();
@@ -18,6 +18,10 @@ AClass a = new AClass();
 BClass b = _mapFunc(a);
 ```
 
-4. 集合类型支持一维数组、List<>、IEnumerable<>类型，其余暂不支持
+4. 集合类型支持一维数组、基本泛型集合类型,自定义集合需要实现IEnumerable<>接口
+如 
+```csharp
+int[] string[] List<> IEnumerable<>
+```
 
 

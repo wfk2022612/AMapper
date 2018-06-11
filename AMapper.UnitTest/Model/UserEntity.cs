@@ -18,5 +18,7 @@ namespace AMapper.UnitTest.Model
         public IList<string> EmptyList { get; set; }
 
         public HashSet<string> NullSet { get; set; }
+
+        public string[] StringArray { get; set; }
     }
 }

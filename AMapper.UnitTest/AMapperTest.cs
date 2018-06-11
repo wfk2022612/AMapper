@@ -22,6 +22,7 @@ namespace AMapper.UnitTest
             _userMapFunc = Map.Create<UserPoco, UserEntity>()
                 .ForMember(t => t.Hobbies, s => (s.Hobbies ?? new HobbyPoco[0]).Select(x => x.Name).ToArray())
                 .ForMember(t => t.HobbieEntities, s => s.Hobbies)
+                .ForMember(t=>t.StringArray,s=>s.IntArray.Select(x=>x.ToString()).ToArray())
                 .Compile();
         }
         [TestMethod]
@@ -33,6 +34,7 @@ namespace AMapper.UnitTest
             user.Age = 13;
             user.EmptyList=new List<string>() ;
             user.NullSet = null;
+            user.IntArray = new[] {1, 2, 3};
             user.Hobbies = new HobbyPoco[]
             {
                 new HobbyPoco() {Name = "游泳",Chars = new [] {'Y','Y'}},
@@ -49,6 +51,7 @@ namespace AMapper.UnitTest
             Assert.IsTrue(people.HobbieEntities.First().CharString == "YY", "爱好首字母不一致");
             Assert.IsTrue(!people.EmptyList.Any(),"空列表不为空");
             Assert.IsTrue(people.NullSet==null, "NullSet不为NULL");
+            Assert.IsTrue(people.StringArray[0] == "1", "不同类型间数组的转换失败");
         }
 
     }

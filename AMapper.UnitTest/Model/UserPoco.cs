@@ -16,6 +16,8 @@ namespace AMapper.UnitTest.Model
         public List<string> EmptyList { get; set; }
 
         public ISet<string> NullSet { get; set; }
+
+        public int[] IntArray { get; set; }
     }
 
 }
