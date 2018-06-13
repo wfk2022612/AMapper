@@ -22,5 +22,10 @@ namespace AMapper
         {
             get;
         }
+
+        /// <summary>
+        /// 基本数据的集合类型转换类
+        /// </summary>
+        Type BaseCollectionConvertType { get; }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,11 +41,12 @@ namespace AMapper
                 if (tsProp != null)
                 {
                     // 生成属性表达式
-                    ParameterExpression param = Expression.Parameter(typeof(TS), "ts");
+                    var param = Expression.Parameter(typeof(TS), "ts");
                     Expression propExp = Expression.Property(param, tsProp);
 
 
-                    var systemConvert = typeof(Convert).GetMethod("To" + prop.PropertyType.Name, new Type[] { propExp.Type });
+                    var systemConvert = typeof(Convert).GetMethod("To" + prop.PropertyType.Name,
+                        new Type[] { propExp.Type });
                     if (systemConvert != null)
                     {
                         propExp = Expression.Call(null, systemConvert, propExp); // 使用系统方法转换
@@ -57,26 +59,24 @@ namespace AMapper
                 else
                 {
                     // 没有对应的属性,使用默认值
-                    _propExps[prop.Name] = Expression.Default(prop.PropertyType);
+                    var param = Expression.Parameter(typeof(TS), "ts");
+                    _propExps[prop.Name] = Expression.Lambda(Expression.Default(prop.PropertyType), param);
                 }
             }
         }
+
         /// <summary>
         /// 属性映射配置
         /// </summary>
         /// <param name="prop">新类型属性</param>
         /// <param name="tsProp">源类型属性或值表达式</param>
         /// <returns></returns>
-        public TypeMap<TS, TD> ForMember(Expression<Func<TD, object>> prop, Expression<Func<TS, object>> tsProp)
+        public TypeMap<TS, TD> ForMember<TDPropType, TsPropType>(Expression<Func<TD, TDPropType>> prop, Expression<Func<TS, TsPropType>> tsProp)
         {
             string name = null;
             if (prop.Body.NodeType == ExpressionType.MemberAccess)
             {
                 name = ((MemberExpression)prop.Body).Member.Name;
-            }
-            else if (prop.Body.NodeType == ExpressionType.Convert)
-            {
-                name = ((MemberExpression)((UnaryExpression)prop.Body).Operand).Member.Name;
             }
 
             _propExps[name] = tsProp;
@@ -89,12 +89,13 @@ namespace AMapper
         /// </summary>
         private void CreateMapType()
         {
-
             AssemblyBuilder assemblyBuilder =
-                AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("FastMapAsm" + DateTime.Now.Ticks),
+                AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("FastMapAsm" + Guid.NewGuid().ToString("N")),
                     AssemblyBuilderAccess.Run);
             var moduleBuilder = assemblyBuilder.DefineDynamicModule("FastMapAsmModule");
-            var typeBuilder = moduleBuilder.DefineType("FastPropMap" + typeof(TS).Name + "_" + typeof(TD).Name, TypeAttributes.Class | TypeAttributes.Public);
+            this.BaseCollectionConvertType = CreateBaseCollectionConvertType(moduleBuilder);
+
+            var typeBuilder = moduleBuilder.DefineType("FastPropMap" + Guid.NewGuid().ToString("N"), TypeAttributes.Class | TypeAttributes.Public);
             var bprops = typeof(TD).GetProperties();
 
             // 单个属性转换
@@ -102,69 +103,114 @@ namespace AMapper
             {
                 var propMap = _propExps[propertyInfo.Name];
 
-                ParameterExpression parameter = Expression.Parameter(typeof(TS), "a");
-                ParameterExpression bparam = Expression.Parameter(typeof(TD), "b");
-
-                Expression val = null;
+                ParameterExpression tsParam = Expression.Parameter(typeof(TS), "ts");
+                ParameterExpression tdParam = Expression.Parameter(typeof(TD), "td");
 
                 var valExp = (LambdaExpression)propMap;
-                val = valExp.Body;
-                Type convertType = null;// CreateMapType生成的转换类
-                MethodInfo toCollectionMethod = null;
-                if (propertyInfo.PropertyType.GetInterface(typeof(IEnumerable).Name) != null && propertyInfo.PropertyType != typeof(string))
-                {
-                    // 处理集合属性
-                    convertType = GetTypeMap(GetElementType(val.Type), GetElementType(propertyInfo.PropertyType), true);
+                Expression val = valExp.Body;
 
-                    if (propertyInfo.PropertyType.Name != typeof(IEnumerable).Name && propertyInfo.PropertyType.Name != typeof(IEnumerable<>).Name)
+                //if (val.NodeType == ExpressionType.Constant)
+                //{
+                //    if (((ConstantExpression) val).Value == null)
+                //    {
+                //       continue;
+                //    }
+                //}
+
+                MethodInfo toCollectionMethod = null;// 集合转换方法 ToArray ToList 等
+                MethodInfo convertMethod = null;// 类型转换方法
+
+                if (propertyInfo.PropertyType.GetInterface(typeof(IEnumerable).Name) != null
+                    && propertyInfo.PropertyType != typeof(string)
+                    && val.Type.GetInterface(typeof(IEnumerable).Name) != null
+                    && val.Type != typeof(string))
+                {
+                    #region 处理集合属性
+
+                    if (GetElementType(val.Type) != GetElementType(propertyInfo.PropertyType))
+                    {
+                        // 处理集合属性
+                        convertMethod = GetElementConvertMethod(GetElementType(val.Type), GetElementType(propertyInfo.PropertyType));
+
+                        if (convertMethod == null)
+                        {
+                            continue;
+#if DEBUG
+                            throw new InvalidCastException(typeof(TD).FullName + " 的 " + propertyInfo.Name + " 属性没有找到可用的转换方法");
+#else
+                            continue;
+#endif
+
+                        }
+                    }
+
+
+                    if (propertyInfo.PropertyType.Name != typeof(IEnumerable).Name &&
+                        propertyInfo.PropertyType.Name != typeof(IEnumerable<>).Name)
                     {
                         // 只对非IEnumerable类型做处理
 
                         toCollectionMethod =
                             typeof(EnumerableEx).GetMethods()
+                                .Select(m => m.MakeGenericMethod(GetElementType(propertyInfo.PropertyType)))
                                 .FirstOrDefault(m => m.ReturnType.Name == propertyInfo.PropertyType.Name);
-
-                        if (toCollectionMethod != null)
-                            toCollectionMethod = toCollectionMethod.MakeGenericMethod(GetElementType(propertyInfo.PropertyType));
                     }
-                }
-                else
-                {
-                    // 获取已创建的映射转换类
-                    convertType = GetTypeMap(val.Type, propertyInfo.PropertyType);
+
+                    #endregion
                 }
 
-                if (convertType != null)
+                if (convertMethod == null)
                 {
-                    var convertMethod = convertType.GetMethod("Convert");
+                    //处理非集合属性
+                    convertMethod = GetTypeMap(val.Type, propertyInfo.PropertyType)?.GetMethod("Convert"); ;
+                }
 
+                if (convertMethod != null)
+                {
                     val = Expression.Call(null, convertMethod, val);
-                }
-
-                // 将IEnumerable 转为目标集合类型
-                if (toCollectionMethod != null)
-                {
-                    // val= val!=default(T)?ToList(val):default(T)
-                    val = Expression.Condition(Expression.ReferenceNotEqual(val, Expression.Default(propertyInfo.PropertyType)), Expression.Call(null, toCollectionMethod, val), Expression.Default(propertyInfo.PropertyType));
                 }
 
                 if (val.Type != propertyInfo.PropertyType)
                 {
-                    var systemConvert = typeof(Convert).GetMethod("To" + propertyInfo.PropertyType.Name,
-                       new Type[] { val.Type });
-                    if (systemConvert != null)
+                    // 将IEnumerable 转为目标集合类型
+                    if (toCollectionMethod != null)
                     {
-                        val = Expression.Call(null, systemConvert, val); // 使用系统方法转换
+                        // val= val!=default(T)?ToList(val):default(T)
+                        val =
+                            Expression.Condition(
+                                Expression.ReferenceNotEqual(val, Expression.Default(propertyInfo.PropertyType)),
+                                Expression.Call(null, toCollectionMethod, val),
+                                Expression.Default(propertyInfo.PropertyType));
                     }
                     else
                     {
-                        val = Expression.Convert(val, propertyInfo.PropertyType);// 强制转换
+                        var systemConvert = typeof(Convert).GetMethod("To" + propertyInfo.PropertyType.Name,
+                      new Type[] { val.Type });
+                        if (systemConvert != null)
+                        {
+                            val = Expression.Call(null, systemConvert, val); // 使用系统方法转换
+                        }
+                        else if (propertyInfo.PropertyType.IsAssignableFrom(val.Type)||val.NodeType==ExpressionType.Constant)
+                        {
+                            val = Expression.Convert(val, propertyInfo.PropertyType); // 强制转换
+                        }
+                        else
+                        {
+                            continue;
+#if DEBUG
+                            throw new InvalidCastException(typeof(TD).FullName + " 的 " + propertyInfo.Name + " 属性没有找到可用的转换方法");
+#else
+                            continue;
+#endif
+
+                        }
                     }
+                   
                 }
 
-                var call = Expression.Call(bparam, typeof(TD).GetProperty(propertyInfo.Name).GetSetMethod(), val);
+                var call = Expression.Call(tdParam, typeof(TD).GetProperty(propertyInfo.Name).GetSetMethod(), val);
 
-                var callLambda = Expression.Lambda<Action<TS, TD, TS>>(call, parameter, bparam, valExp.Parameters[0]);
+                var callLambda = Expression.Lambda<Action<TS, TD, TS>>(call, tsParam, tdParam, valExp.Parameters[0]);
 
                 var methodBuilder = typeBuilder.DefineMethod("Convert_" + propertyInfo.Name,
                                    MethodAttributes.Public | MethodAttributes.Static, propertyInfo.PropertyType,
@@ -231,6 +277,30 @@ namespace AMapper
             this.ConvertType = typeBuilder.CreateType();
 
             this.CollectConvertType = CreateCollectConvertType(moduleBuilder);
+        }
+
+        /// <summary>
+        /// 获取集合元素转换方法
+        /// </summary>
+        /// <param name="tsType">源类型</param>
+        /// <param name="tdType">新类型</param>
+        /// <returns></returns>
+        private MethodInfo GetElementConvertMethod(Type tsType, Type tdType)
+        {
+            MethodInfo convertMethod = null;
+            var convertType = GetTypeMap(tsType, tdType, true);
+
+            if (convertType != null)
+            {
+                convertMethod = convertType.GetMethod("Convert");
+            }
+            else if (TypeUtils.IsBaseType(tsType) &&
+                     TypeUtils.IsBaseType(tdType))
+            {
+                // 获取基本类型集合的转换方法
+                convertMethod = GetBaseCollectionConvertMethod(tsType, tdType);
+            }
+            return convertMethod;
         }
 
         /// <summary>
@@ -333,6 +403,99 @@ namespace AMapper
         }
 
         /// <summary>
+        /// 创建集合转换类
+        /// </summary>
+        /// <param name="moduleBuilder"></param>
+        /// <returns></returns>
+        private Type CreateBaseCollectionConvertType(ModuleBuilder moduleBuilder)
+        {
+            var typeBuilder = moduleBuilder.DefineType("BaseTypesConvert", TypeAttributes.Class | TypeAttributes.Public);
+
+            var baseTypes = TypeUtils.BaseTypes.ToArray();
+
+            for (var i = 0; i < baseTypes.Length; i++)
+            {
+                for (var j = 1; j < baseTypes.Length; j++)
+                {
+                    var tdType = baseTypes[i];
+                    var tsType = baseTypes[j];
+
+                    if (tdType == tsType)
+                    {
+                        continue;
+                    }
+
+                    var tdEnumerableTyp = typeof(IEnumerable<>).MakeGenericType(tdType);
+                    var tsEnumerableTyp = typeof(IEnumerable<>).MakeGenericType(tsType);
+                    var tsEnumeratorType = typeof(IEnumerator<>).MakeGenericType(tsType);
+                    var tdListType = typeof(List<>).MakeGenericType(tdType);
+
+
+                    var convertMethod = typeof(Convert).GetMethod("To" + tdType.Name, new Type[] { tsType });
+
+                    if (convertMethod != null)
+                    {
+                        var convertMethodBuilder = typeBuilder.DefineMethod("To" + tdType.Name, MethodAttributes.Public | MethodAttributes.Static, tdEnumerableTyp,
+                          new Type[] { tsEnumerableTyp });
+
+                        var addMethod = tdListType.GetMethod("Add");
+                        var getEnumerator = tsEnumerableTyp.GetMethod("GetEnumerator");
+                        var current = tsEnumeratorType.GetProperty("Current").GetGetMethod();
+                        var moveNext = typeof(IEnumerator).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.Public);
+
+                        var il = convertMethodBuilder.GetILGenerator();
+                        il.DeclareLocal(tdListType);
+                        il.DeclareLocal(tdType);
+                        il.DeclareLocal(tsEnumeratorType);
+                        il.DeclareLocal(tsType);
+
+
+                        il.Emit(OpCodes.Newobj, tdListType.GetConstructor(Type.EmptyTypes));
+                        il.Emit(OpCodes.Stloc_0);
+
+                        // ienumerator
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Callvirt, getEnumerator);
+                        il.Emit(OpCodes.Stloc_2);
+                        // loop
+                        var label = il.DefineLabel();
+                        var ret = il.DefineLabel();
+
+                        il.MarkLabel(label);
+                        // movenext
+                        il.Emit(OpCodes.Ldloc_2);
+                        il.Emit(OpCodes.Callvirt, moveNext);
+                        il.Emit(OpCodes.Brfalse_S, ret);
+
+                        //getcurrent
+                        il.Emit(OpCodes.Ldloc_2);
+                        il.Emit(OpCodes.Callvirt, current);
+                        il.Emit(OpCodes.Stloc_3);
+
+                        // convert
+                        il.Emit(OpCodes.Ldloc_3);
+                        il.Emit(OpCodes.Call, convertMethod);
+                        il.Emit(OpCodes.Stloc_1);
+
+                        // 添加到list中
+                        il.Emit(OpCodes.Ldloc_0);
+                        il.Emit(OpCodes.Ldloc_1);
+                        il.Emit(OpCodes.Callvirt, addMethod);
+
+                        // 循环
+                        il.Emit(OpCodes.Br, label);
+
+                        il.MarkLabel(ret);
+                        il.Emit(OpCodes.Ldloc_0);
+                        il.Emit(OpCodes.Ret);
+
+                    }
+                }
+            }
+            return typeBuilder.CreateType();
+        }
+
+        /// <summary>
         /// 单实体转换类
         /// </summary>
         public Type ConvertType { get; private set; }
@@ -340,6 +503,10 @@ namespace AMapper
         /// 多实体转换类
         /// </summary>
         public Type CollectConvertType { get; private set; }
+        /// <summary>
+        /// 基本数据的集合类型转换类
+        /// </summary>
+        public Type BaseCollectionConvertType { get; private set; }
 
         /// <summary>
         /// 获取类型映射
@@ -366,6 +533,20 @@ namespace AMapper
             }
             return null;
         }
+
+        /// <summary>
+        /// 获取基本类型集合的转换方法
+        /// </summary>
+        /// <param name="tsType">源类型</param>
+        /// <param name="tdType">新类型</param>
+        /// <returns></returns>
+        private MethodInfo GetBaseCollectionConvertMethod(Type tdType, Type tsType)
+        {
+            var tsColType = typeof(IEnumerable<>).MakeGenericType(tsType);
+            var tdColType = typeof(IEnumerable<>).MakeGenericType(tdType);
+            return this.BaseCollectionConvertType.GetMethods().FirstOrDefault(m => m.ReturnType == tsColType && m.GetParameters()[0].ParameterType == tdColType);
+        }
+
         /// <summary>
         /// 编译生成入口方法
         /// </summary>
