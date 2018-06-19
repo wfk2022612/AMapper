@@ -8,7 +8,7 @@ namespace AMapper.UnitTest.Model
  public   class UserEntity
     {
         public string Name { get; set; }
-        public int Age { get; set; }
+        public long Age { get; set; }
         public int Gender { get;  set; }
 
         public string[] Hobbies { get; set; }

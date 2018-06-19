@@ -55,10 +55,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="AMapper.nuspec" />
-    <None Include="NuGet.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="NuGet.exe" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

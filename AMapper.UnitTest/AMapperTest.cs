@@ -22,7 +22,7 @@ namespace AMapper.UnitTest
             _userMapFunc = Map.Create<UserPoco, UserEntity>()
                 .ForMember(t => t.Hobbies, s => (s.Hobbies ?? new HobbyPoco[0]).Select(x => x.Name).ToArray())
                 .ForMember(t => t.HobbieEntities, s => s.Hobbies)
-                .ForMember(t=>t.StringArray,s=>s.IntArray.Select(x=>x.ToString()).ToArray())
+                .ForMember(t => t.StringArray, s => s.IntArray)
                 .Compile();
         }
         [TestMethod]
@@ -32,9 +32,9 @@ namespace AMapper.UnitTest
             var user = new UserPoco();
             user.Name = "jack";
             user.Age = 13;
-            user.EmptyList=new List<string>() ;
+            user.EmptyList = new List<string>();
             user.NullSet = null;
-            user.IntArray = new[] {1, 2, 3};
+            user.IntArray = new[] { 1, 2, 3 };
             user.Hobbies = new HobbyPoco[]
             {
                 new HobbyPoco() {Name = "游泳",Chars = new [] {'Y','Y'}},
@@ -42,15 +42,17 @@ namespace AMapper.UnitTest
                 new HobbyPoco() {Name = "羽毛球",Chars = new [] {'Y','M','Q'}},
                 new HobbyPoco() {Name = "唱歌",Chars = new [] {'C','G'}},
             };
+            UserEntity people = null;
 
-            var people = _userMapFunc(user);
+            people = _userMapFunc(user);
+
             Assert.IsTrue(people.Name == user.Name, "姓名不一致");
             Assert.IsTrue(people.Age == user.Age, "年龄不一致");
             Assert.IsTrue(people.Hobbies[0] == "游泳", "爱好不一致");
             Assert.IsTrue(people.HobbieEntities.First().Name == "游泳", "爱好不一致");
             Assert.IsTrue(people.HobbieEntities.First().CharString == "YY", "爱好首字母不一致");
-            Assert.IsTrue(!people.EmptyList.Any(),"空列表不为空");
-            Assert.IsTrue(people.NullSet==null, "NullSet不为NULL");
+            Assert.IsTrue(!people.EmptyList.Any(), "空列表不为空");
+            Assert.IsTrue(people.NullSet == null, "NullSet不为NULL");
             Assert.IsTrue(people.StringArray[0] == "1", "不同类型间数组的转换失败");
         }
 

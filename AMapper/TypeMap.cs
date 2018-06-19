@@ -109,14 +109,6 @@ namespace AMapper
                 var valExp = (LambdaExpression)propMap;
                 Expression val = valExp.Body;
 
-                //if (val.NodeType == ExpressionType.Constant)
-                //{
-                //    if (((ConstantExpression) val).Value == null)
-                //    {
-                //       continue;
-                //    }
-                //}
-
                 MethodInfo toCollectionMethod = null;// 集合转换方法 ToArray ToList 等
                 MethodInfo convertMethod = null;// 类型转换方法
 
@@ -135,12 +127,6 @@ namespace AMapper
                         if (convertMethod == null)
                         {
                             continue;
-#if DEBUG
-                            throw new InvalidCastException(typeof(TD).FullName + " 的 " + propertyInfo.Name + " 属性没有找到可用的转换方法");
-#else
-                            continue;
-#endif
-
                         }
                     }
 
@@ -190,22 +176,16 @@ namespace AMapper
                         {
                             val = Expression.Call(null, systemConvert, val); // 使用系统方法转换
                         }
-                        else if (propertyInfo.PropertyType.IsAssignableFrom(val.Type)||val.NodeType==ExpressionType.Constant)
+                        else if (propertyInfo.PropertyType.IsAssignableFrom(val.Type) || val.NodeType == ExpressionType.Constant)
                         {
                             val = Expression.Convert(val, propertyInfo.PropertyType); // 强制转换
                         }
                         else
                         {
                             continue;
-#if DEBUG
-                            throw new InvalidCastException(typeof(TD).FullName + " 的 " + propertyInfo.Name + " 属性没有找到可用的转换方法");
-#else
-                            continue;
-#endif
-
                         }
                     }
-                   
+
                 }
 
                 var call = Expression.Call(tdParam, typeof(TD).GetProperty(propertyInfo.Name).GetSetMethod(), val);
@@ -556,7 +536,7 @@ namespace AMapper
             CreateMapType();
 
             var dm = new DynamicMethod("translate" + typeof(TD).Name + "To" + typeof(TS).Name, typeof(TD),
-                new[] { typeof(TS) }, typeof(TD).Module);
+             new[] { typeof(TS) }, typeof(TD).Module);
             var il = dm.GetILGenerator();
             il.DeclareLocal(typeof(TD));
 
@@ -576,7 +556,6 @@ namespace AMapper
             il.Emit(OpCodes.Ret);
 
             return (Func<TS, TD>)dm.CreateDelegate(typeof(Func<TS, TD>));
-
         }
     }
 }
