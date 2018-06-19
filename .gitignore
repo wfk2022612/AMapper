@@ -3,7 +3,9 @@
 ################################################################################
 
 /.vs/AMapper/v14
+/.vs/AMapper/v14/.suo
 /AMapper.UnitTest/bin/
 /AMapper.UnitTest/obj/
 /AMapper/obj/
 /AMapper/bin/
+
